@@ -12,13 +12,11 @@ import org.hibernate.metadata.ClassMetadata;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 
-public class HibernateRevisionsDataStore implements DataStore {
+public class HibernateRevisionsDataStore extends HibernateEntityManagerStore {
 
-    protected final HibernateEntityManager entityManager;
 
     public HibernateRevisionsDataStore(HibernateEntityManager entityManager) {
-        this.entityManager = entityManager;
-
+        super(entityManager, false, ScrollMode.SCROLL_SENSITIVE);
     }
 
     @Override

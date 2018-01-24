@@ -13,16 +13,20 @@ import com.yahoo.elide.core.hibernate.hql.RootCollectionFetchQueryBuilder;
 import com.yahoo.elide.core.pagination.Pagination;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.hibernate5.porting.QueryWrapper;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.ObjectNotFoundException;
+import org.hibernate.Query;
 import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.query.AuditEntity;
 import org.hibernate.envers.query.criteria.AuditCriterion;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Optional;
 
+@Slf4j
 public class HibernateRevisionsTransaction extends HibernateTransaction {
 
     private AuditReader auditReader;
@@ -46,6 +50,7 @@ public class HibernateRevisionsTransaction extends HibernateTransaction {
                              Serializable id,
                              Optional<FilterExpression> filterExpression,
                              RequestScope scope) {
+        log.debug(String.format("Revision: %d", scope.getHistoricalRevision()));
         if (!isHistory(scope)) {
             return super.loadObject(entityClass, id, filterExpression, scope);
         }
@@ -82,7 +87,8 @@ public class HibernateRevisionsTransaction extends HibernateTransaction {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
-        if (isHistory(scope)) {
+        log.debug(String.format("Revision: %d", getRevision(scope)));
+        if (!isHistory(scope)) {
             return super.loadObjects(entityClass, filterExpression, sorting, pagination, scope);
         }
 
@@ -96,10 +102,18 @@ public class HibernateRevisionsTransaction extends HibernateTransaction {
     }
 
     private boolean isHistory(RequestScope scope) {
-        return scope.isHistorical();
+        return scope.getHistoricalRevision() != null || scope.getHistoricalDatestamp() != null;
     }
 
-    private int getRevision(RequestScope scope) {
-        return 2;
+    private Integer getRevision(RequestScope scope) {
+        if (scope.getHistoricalRevision() != null) {
+            return scope.getHistoricalRevision().intValue();
+        } else {
+            Query query = this.session.createSQLQuery("SELECT MAX(REV) from REVINFO WHERE REVTSTMP <= :timestamp");
+            query.setParameter("timestamp", scope.getHistoricalDatestamp());
+            log.debug(String.format("Query: %s", query.toString()));
+            log.debug(String.format("ts: %d", scope.getHistoricalDatestamp()));
+            return (Integer) query.uniqueResult();
+        }
     }
 }

@@ -61,7 +61,7 @@ public class RevisionStoreIT extends AbstractIntegrationTestInitializer {
         try (DataStoreTransaction tx = dataStore.beginTransaction()) {
             RequestScope rs = Mockito.mock(RequestScope.class);
             Mockito.when(rs.getDictionary()).thenReturn(entityDictionary);
-            Mockito.when(rs.isHistorical()).thenReturn(false);
+            Mockito.when(rs.getHistoricalRevision()).thenReturn(1L);
             Person revPerson = (Person) tx.loadObject(Person.class, 1L, Optional.empty(), rs);
             revPerson.setName("Numerology");
             tx.save(revPerson, null);
