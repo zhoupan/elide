@@ -15,10 +15,12 @@ import org.hibernate.envers.Audited;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.Set;
 
 @Entity
+@Audited
 @Include(rootLevel = true)
-@Audited // Ensure envers does not cause any issues
 public class Person {
     @Setter
     private long id;
@@ -41,5 +43,15 @@ public class Person {
     })
     public AddressFragment getAddress() {
         return address;
+    }
+
+
+    private Set<Child> children;
+    @OneToMany(mappedBy = "parent")
+    public Set<Child> getChildren() {
+        return  children;
+    }
+    public void setChildren(Set<Child> children) {
+        this.children = children;
     }
 }

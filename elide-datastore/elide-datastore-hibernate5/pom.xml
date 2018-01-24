@@ -160,7 +160,7 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-envers</artifactId>
             <version>${hibernate5.version}</version>
-            <scope>test</scope>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
