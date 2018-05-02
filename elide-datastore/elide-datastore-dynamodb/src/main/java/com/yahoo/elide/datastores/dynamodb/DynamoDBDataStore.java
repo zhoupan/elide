@@ -34,7 +34,7 @@ public class DynamoDBDataStore implements DataStore {
 
     @Override
     public DataStoreTransaction beginTransaction() {
-        return new DyanmoDBTransaction(dynamoDB);
+        return new DynamoDBTransaction(dynamoDB);
     }
 
     @Override

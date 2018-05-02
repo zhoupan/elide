@@ -8,6 +8,7 @@ package com.yahoo.elide.datastores.dynamodb;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
@@ -17,17 +18,16 @@ import com.yahoo.elide.core.sort.Sorting;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class DyanmoDBTransaction implements DataStoreTransaction {
+public class DynamoDBTransaction implements DataStoreTransaction {
     private final AmazonDynamoDB dynamoDB;
     private final DynamoDBMapper mapper;
     // TODO: Can we make a batch update request rather than iterating n different operations?
     private final List<Runnable> actions = new ArrayList<>();
 
-    public DyanmoDBTransaction(AmazonDynamoDB dynamoDB) {
+    public DynamoDBTransaction(AmazonDynamoDB dynamoDB) {
         this.dynamoDB = dynamoDB;
         this.mapper = new DynamoDBMapper(dynamoDB);
     }
@@ -80,7 +80,10 @@ public class DyanmoDBTransaction implements DataStoreTransaction {
         // TODO: Support sorting and pagination.
         // TODO: Fetching hierarchy TBD (i.e. "related" objects not denormalized)
         DynamoDBMapperConfig config = DynamoDBMapperConfig.builder().build();
-        return mapper.batchLoad(Collections.singletonList(entityClass), config).get(entityClass);
+        return (Iterable) mapper.scanPage(entityClass,
+                new DynamoDBScanExpression(),
+                config
+        ).getResults();
     }
 
     @Override
