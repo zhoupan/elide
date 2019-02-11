@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @JsonSerialize(using = DataSerializer.class)
 @JsonDeserialize(using = DataDeserializer.class)
 @ToString
-public class Data<T> {
+public class Data<T extends Resource> {
     private final Collection<T> values;
     private final RelationshipType relationshipType;
 
@@ -95,10 +95,9 @@ public class Data<T> {
         throw new IllegalAccessError("Data is not toOne");
     }
 
-    @SuppressWarnings("unchecked")
     public Collection<ResourceIdentifier> toResourceIdentifiers() {
-        return ((Collection<Resource>) get()).stream()
-                                             .map(object -> object != null ? object.toResourceIdentifier() : null)
-                                             .collect(Collectors.toList());
+        return get().stream()
+                .map(object -> object != null ? object.toResourceIdentifier() : null)
+                .collect(Collectors.toList());
     }
 }
