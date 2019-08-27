@@ -186,7 +186,8 @@ public interface DataStoreTransaction extends Closeable {
             Optional<Sorting> sorting,
             Optional<Pagination> pagination,
             RequestScope scope) {
-        return PersistentResource.getValue(entity, relationName, scope);
+        EntityDictionary dictionary = scope.getDictionary();
+        return dictionary.getValue(entity, relationName, scope);
     }
 
 
@@ -237,7 +238,8 @@ public interface DataStoreTransaction extends Closeable {
     default Object getAttribute(Object entity,
                                 String attributeName,
                                 RequestScope scope) {
-        return PersistentResource.getValue(entity, attributeName, scope);
+        EntityDictionary dictionary = scope.getDictionary();
+        return dictionary.getValue(entity, attributeName, scope);
 
     }
 
@@ -256,6 +258,8 @@ public interface DataStoreTransaction extends Closeable {
                               String attributeName,
                               Object attributeValue,
                               RequestScope scope) {
+        EntityDictionary dictionary = scope.getDictionary();
+        dictionary.setValue(entity, attributeName, attributeValue);
     }
 
     /**
