@@ -41,17 +41,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -1435,7 +1431,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @param requestScope the request scope
      * @return the value
      */
-    private static Object getValue(Object target, String fieldName, RequestScope requestScope) {
+    public static Object getValue(Object target, String fieldName, RequestScope requestScope) {
         EntityDictionary dictionary = requestScope.getDictionary();
         return dictionary.getValue(target, fieldName, requestScope);
     }
