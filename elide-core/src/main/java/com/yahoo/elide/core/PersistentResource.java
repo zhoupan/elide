@@ -1425,7 +1425,7 @@ public class PersistentResource<T> implements com.yahoo.elide.security.Persisten
      * @return the value
      */
     public Object getValue(Object target, String fieldName, RequestScope requestScope) {
-        DataStoreTransaction tx = (this.transaction == null ? requestScope.getTransaction() : this.transaction);
+        DataStoreTransaction tx = (requestScope.getTransaction() == null ? this.transaction : requestScope.getTransaction());
         return tx.getAttribute(target, fieldName, requestScope);
     }
 

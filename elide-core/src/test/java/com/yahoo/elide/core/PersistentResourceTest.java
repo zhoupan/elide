@@ -446,12 +446,12 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     @Test
-    public void testGetValue() throws Exception {
+    public void testGetValue() {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setField3("testValue");
         String result;
-        when(tx.getAttribute(any(), any(), eq(goodUserScope))).thenCallRealMethod();
 
+        when(tx.getAttribute(any(), any(), eq(goodUserScope))).thenCallRealMethod();
         result = (String) getValue(fun, "field3", goodUserScope);
         assertEquals("testValue", result, "getValue should set the appropriate value in the resource");
 
