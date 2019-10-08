@@ -5,7 +5,7 @@
  */
 package com.yahoo.elide.core.filter;
 
-import com.yahoo.elide.core.PersistentResource;
+import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.exceptions.InvalidOperatorNegationException;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
@@ -334,7 +334,8 @@ public enum Operator {
             if (val == null) {
                 break;
             }
-            val = PersistentResource.getValue(val, field, requestScope);
+            DataStoreTransaction transaction = requestScope.getTransaction();
+            val = transaction.getAttribute(val, field, requestScope);
         }
         return val;
     }

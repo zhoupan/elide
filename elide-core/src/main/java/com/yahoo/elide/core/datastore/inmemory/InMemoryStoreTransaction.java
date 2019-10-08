@@ -9,7 +9,6 @@ package com.yahoo.elide.core.datastore.inmemory;
 import com.yahoo.elide.core.DataStoreTransaction;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.Path;
-import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
 import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.FilterPredicatePushdownExtractor;
@@ -356,9 +355,9 @@ public class InMemoryStoreTransaction implements DataStoreTransaction {
             // Drill down into path to find value for comparison
             for (Path.PathElement pathElement : path.getPathElements()) {
                 leftCompare = (leftCompare == null ? null
-                        : PersistentResource.getValue(leftCompare, pathElement.getFieldName(), requestScope));
+                        : this.tx.getAttribute(leftCompare, pathElement.getFieldName(), requestScope));
                 rightCompare = (rightCompare == null ? null
-                        : PersistentResource.getValue(rightCompare, pathElement.getFieldName(), requestScope));
+                        : this.tx.getAttribute(rightCompare, pathElement.getFieldName(), requestScope));
             }
 
             if (order == Sorting.SortOrder.asc) {

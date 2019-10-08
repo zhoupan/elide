@@ -103,13 +103,16 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
     private final RequestScope goodUserScope;
     private final RequestScope badUserScope;
+    private final DataStoreTransaction tx;
 
     public PersistentResourceTest() {
-        goodUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class),
+        tx = mock(DataStoreTransaction.class);
+        goodUserScope = new RequestScope(null, null, tx,
                 new User(1), null, elideSettings);
-        badUserScope = new RequestScope(null, null, mock(DataStoreTransaction.class),
+        badUserScope = new RequestScope(null, null, tx,
                 new User(-1), null, elideSettings);
-
+        when(tx.getAttribute(any(), any(), eq(goodUserScope))).thenCallRealMethod();
+        when(tx.getAttribute(any(), any(), eq(badUserScope))).thenCallRealMethod();
         init();
     }
 
@@ -186,8 +189,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        when(tx.getAttribute(any(), any(), eq(goodScope))).thenCallRealMethod();
+
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         funResource.removeRelation("relation3", childResource);
@@ -242,8 +246,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         User goodUser = new User(1);
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
-
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        when(tx.getAttribute(any(), any(), any())).thenCallRealMethod();
+
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         parentResource.removeRelation("children", childResource);
@@ -267,8 +272,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(children);
-
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        when(tx.getAttribute(any(), any(), eq(goodScope))).thenCallRealMethod();
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, "3", goodScope);
         parentResource.clearRelation("children");
 
@@ -372,6 +377,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         fun.setField2(null);
         fun.setField4("bar");
 
+        when(tx.getAttribute(any(), any(), eq(goodUserScope))).thenCallRealMethod();
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "3", goodUserScope);
 
         Map<String, Object> attributes = funResource.getAttributes();
@@ -390,6 +396,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         assertEquals(attributes.get("field3"), "Foobar", "field3 should be set to original value.");
         assertEquals(attributes.get("field4"), "bar", "field4 should be set to original value.");
 
+        when(tx.getAttribute(any(), any(), eq(badUserScope))).thenCallRealMethod();
         PersistentResource<FunWithPermissions> funResourceBad = new PersistentResource<>(fun, null, "3", badUserScope);
 
         attributes = funResourceBad.getAttributes();
@@ -443,42 +450,44 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setField3("testValue");
         String result;
-        result = (String) getValue(fun, "field3", getRequestScope());
+        when(tx.getAttribute(any(), any(), eq(goodUserScope))).thenCallRealMethod();
+
+        result = (String) getValue(fun, "field3", goodUserScope);
         assertEquals("testValue", result, "getValue should set the appropriate value in the resource");
 
         fun.setField1("testValue2");
 
-        result = (String) getValue(fun, "field1", getRequestScope());
+        result = (String) getValue(fun, "field1", goodUserScope);
         assertEquals(result, "testValue2", "getValue should set the appropriate value in the resource");
 
         Child testChild = newChild(3);
         fun.setRelation1(Sets.newHashSet(testChild));
 
         @SuppressWarnings("unchecked")
-        Set<Child> children = (Set<Child>) getValue(fun, "relation1", getRequestScope());
+        Set<Child> children = (Set<Child>) getValue(fun, "relation1", goodUserScope);
 
         assertTrue(children.contains(testChild), "getValue should set the correct relation.");
         assertEquals(1, children.size(), "getValue should set the relation with the correct number of elements");
 
         ComputedBean computedBean = new ComputedBean();
 
-        String computedTest1 = (String) getValue(computedBean, "test", getRequestScope());
-        String computedTest2 = (String) getValue(computedBean, "testWithScope", getRequestScope());
-        String computedTest3 = (String) getValue(computedBean, "testWithSecurityScope", getRequestScope());
+        String computedTest1 = (String) getValue(computedBean, "test", goodUserScope);
+        String computedTest2 = (String) getValue(computedBean, "testWithScope", goodUserScope);
+        String computedTest3 = (String) getValue(computedBean, "testWithSecurityScope", goodUserScope);
 
         assertEquals("test1", computedTest1);
         assertEquals("test2", computedTest2);
         assertEquals("test3", computedTest3);
 
         try {
-            getValue(computedBean, "NonComputedWithScope", getRequestScope());
+            getValue(computedBean, "NonComputedWithScope", goodUserScope);
             fail("Getting a bad relation should throw an InvalidAttributeException.");
         } catch (InvalidAttributeException e) {
             // Do nothing
         }
 
         try {
-            getValue(fun, "badRelation", getRequestScope());
+            getValue(fun, "badRelation", goodUserScope);
             fail("Getting a bad relation should throw an InvalidAttributeException.");
         } catch (InvalidAttributeException e) {
             return;
@@ -553,6 +562,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         left.setOne2one(right);
         right.setOne2one(left);
 
+        when(tx.getAttribute(any(), any(), eq(goodUserScope))).thenCallRealMethod();
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, "3", goodUserScope);
 
         leftResource.deleteInverseRelation("one2one", right);
@@ -751,7 +761,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         FunWithPermissions fun = new FunWithPermissions();
         fun.setField2("blah");
         fun.setField3(null);
-
+        when(tx.getAttribute(any(), any(),  eq(goodUserScope))).thenCallRealMethod();
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodUserScope);
 
         String result = (String) funResource.getAttribute("field2");
@@ -763,9 +773,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     @Test
     public void testGetAttributeInvalidField() {
         FunWithPermissions fun = new FunWithPermissions();
-
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodUserScope);
-
+        when(tx.getAttribute(any(), eq("invalid"), any(RequestScope.class))).thenThrow(new InvalidAttributeException("", "invalid"));
         assertThrows(InvalidAttributeException.class, () -> funResource.getAttribute("invalid"));
     }
 
@@ -1161,6 +1170,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        when(tx.getAttribute(any(), any(), eq(goodScope))).thenCallRealMethod();
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
         PersistentResource<Object> removeResource = new PersistentResource<>(parent1, null, "1", goodScope);
         childResource.removeRelation("parents", removeResource);
@@ -1226,6 +1236,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        when(tx.getAttribute(any(), any(), eq(goodScope))).thenCallRealMethod();
 
         PersistentResource<FunWithPermissions> funResource = new PersistentResource<>(fun, null, "1", goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, null, "1", goodScope);
@@ -1330,7 +1341,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
 
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.getRelation(any(), eq(child), eq("parents"), any(), any(), any(), any())).thenReturn(parents);
-
+        when(tx.getAttribute(any(), any(), any())).thenCallRealMethod();
         User goodUser = new User(1);
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
 
@@ -1378,6 +1389,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         Parent parent = new Parent();
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        when(tx.getAttribute(any(), any(), eq(goodScope))).thenCallRealMethod();
 
         Child child1 = newChild(1);
         Child child2 = newChild(2);
@@ -1777,6 +1789,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         User goodUser = new User(1);
         DataStoreTransaction tx = mock(DataStoreTransaction.class);
         when(tx.getRelation(any(), eq(left), eq("noInverseUpdate"), any(), any(), any(), any())).thenReturn(rights);
+        when(tx.getAttribute(any(), eq("noInverseUpdate"), any())).thenCallRealMethod();
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
         PersistentResource<Left> leftResource = new PersistentResource<>(left, null, goodScope.getUUIDFor(left), goodScope);
@@ -1843,6 +1856,7 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.getRelation(any(), eq(parent), eq("children"), any(), any(), any(), any())).thenReturn(parent.getChildren());
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        when(tx.getAttribute(any(), any(), eq(goodScope))).thenCallRealMethod();
 
         PersistentResource<Parent> parentResource = new PersistentResource<>(parent, null, goodScope.getUUIDFor(parent), goodScope);
         PersistentResource<Child> childResource = new PersistentResource<>(child, parentResource, goodScope.getUUIDFor(child), goodScope);
@@ -2011,6 +2025,8 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
         when(tx.getRelation(any(), eq(userModel), eq("noShares"), any(), any(), any(), any())).thenReturn(noshares);
 
         RequestScope goodScope = new RequestScope(null, null, tx, goodUser, null, elideSettings);
+        when(tx.getAttribute(any(), any(), eq(goodScope))).thenCallRealMethod();
+
         PersistentResource<example.User> userResource = new PersistentResource<>(userModel, null, goodScope.getUUIDFor(userModel), goodScope);
 
         boolean returnVal = userResource.updateRelation("noShares", ids.toPersistentResources(goodScope));
@@ -2226,7 +2242,9 @@ public class PersistentResourceTest extends PersistenceResourceTestSetup {
     }
 
     private <T> PersistentResource<T> bootstrapPersistentResource(T obj) {
-        return bootstrapPersistentResource(obj, mock(DataStoreTransaction.class));
+        DataStoreTransaction tmpTx = mock(DataStoreTransaction.class);
+        when(tmpTx.getAttribute(any(), any(), any())).thenCallRealMethod();
+        return bootstrapPersistentResource(obj, tmpTx);
     }
 
     private <T> PersistentResource<T> bootstrapPersistentResource(T obj, DataStoreTransaction tx) {
