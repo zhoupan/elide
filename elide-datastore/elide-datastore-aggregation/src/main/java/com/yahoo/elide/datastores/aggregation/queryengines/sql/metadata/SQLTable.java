@@ -9,39 +9,37 @@ import com.yahoo.elide.core.exceptions.InternalServerErrorException;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * SQL Table store sql columns with their reference to physical table/views.
+ * SQL extension of {@link Table} which also contains sql column meta data.
  */
-public interface SQLTable {
-    /**
-     * Get sql column meta data.
-     *
-     * @return all sql columns
-     */
-    Set<SQLColumn> getSqlColumns();
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class SQLTable extends Table {
+    private Set<SQLColumn> sqlColumns;
 
-    /**
+    public SQLTable(Class<?> cls, AggregationDictionary dictionary) {
+        super(cls, dictionary);
+        this.sqlColumns = resolveSQLDimensions(cls, dictionary);
+    }
+
+   /**
      * Get sql column meta data based on field name.
      *
      * @param fieldName field name
      * @return sql column
      */
-    default SQLColumn getSQLColumn(String fieldName) {
+    public SQLColumn getSQLColumn(String fieldName) {
         return getSqlColumns().stream()
                 .filter(col -> col.getName().equals(fieldName))
                 .findFirst()
                 .orElseThrow(() -> new InternalServerErrorException("SQLField not found: " + fieldName));
     }
-
-    /**
-     * Get this table as logical table form.
-     *
-     * @return logical table object of this table.
-     */
-    Table asTable();
 
     /**
      * Resolve all sql columns of a table.

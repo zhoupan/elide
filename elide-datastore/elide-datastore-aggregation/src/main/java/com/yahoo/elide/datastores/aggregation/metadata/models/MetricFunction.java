@@ -14,6 +14,8 @@ import com.yahoo.elide.request.Argument;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,22 +30,61 @@ import javax.persistence.OneToMany;
  */
 @Include(type = "metricFunction")
 @Entity
-@Data
 @ToString
+@Data
 public abstract class MetricFunction {
     @Id
-    public abstract String getName();
+    private String name;
 
-    public abstract String getLongName();
+    private String longName;
 
-    public abstract String getDescription();
+    private String description;
 
     @OneToMany
-    public abstract Set<FunctionArgument> getArguments();
+    private Set<FunctionArgument> arguments;
 
-    protected abstract MetricFunctionInvocation invoke(Map<String, Argument> arguments,
-                                                       List<AggregatableField> fields,
-                                                       String alias);
+    public MetricFunction(String name, String longName, String description, Set<FunctionArgument> arguments) {
+        this.name = name;
+        this.longName = longName;
+        this.description = description;
+        this.arguments = arguments;
+    }
+
+    public MetricFunction(String name, String longName, String description) {
+        this(name, longName, description, Collections.emptySet());
+    }
+
+    public MetricFunctionInvocation invoke(Map<String, Argument> arguments,
+                                           List<AggregatableField> fields,
+                                           String alias) {
+        final MetricFunction function = this;
+        return new MetricFunctionInvocation() {
+            @Override
+            public List<Argument> getArguments() {
+                return new ArrayList<>(arguments.values());
+            }
+
+            @Override
+            public Argument getArgument(String argumentName) {
+                return arguments.get(argumentName);
+            }
+
+            @Override
+            public MetricFunction getFunction() {
+                return function;
+            }
+
+            @Override
+            public List<AggregatableField> getFields() {
+                return fields;
+            }
+
+            @Override
+            public String getAlias() {
+                return alias;
+            }
+        };
+    }
 
     /**
      * Get all required argument names for this metric function.

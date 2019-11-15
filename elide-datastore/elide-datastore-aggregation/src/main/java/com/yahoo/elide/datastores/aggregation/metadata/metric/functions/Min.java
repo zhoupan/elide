@@ -5,10 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.metric.functions;
 
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
+
 /**
  * Canned MIN metric function.
  */
-public class Min extends BasicMetricFunction {
+public class Min extends MetricFunction {
     public Min() {
         super("Min", "Min", "Calculate min of a metric column");
     }

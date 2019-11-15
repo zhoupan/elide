@@ -5,10 +5,12 @@
  */
 package com.yahoo.elide.datastores.aggregation.metadata.metric.functions;
 
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
+
 /**
  * Canned SUM metric function.
  */
-public class Sum extends BasicMetricFunction {
+public class Sum extends MetricFunction {
     public Sum() {
         super("Sum", "Sum", "Calculate sum of a metric column");
     }
