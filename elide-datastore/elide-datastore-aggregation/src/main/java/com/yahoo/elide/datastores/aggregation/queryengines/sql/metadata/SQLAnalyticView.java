@@ -21,16 +21,11 @@ import java.util.Set;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SQLAnalyticView extends AnalyticView implements SQLTable {
+public class SQLAnalyticView extends AnalyticView {
     private Set<SQLColumn> sqlColumns;
 
     public SQLAnalyticView(Class<?> cls, AggregationDictionary dictionary) {
         super(cls, dictionary);
         this.sqlColumns = resolveSQLDimensions(cls, dictionary);
-    }
-
-    @Override
-    public Table asTable() {
-        return this;
     }
 }

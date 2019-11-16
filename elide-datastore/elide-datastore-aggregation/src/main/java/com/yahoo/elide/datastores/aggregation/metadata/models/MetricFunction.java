@@ -7,7 +7,6 @@ package com.yahoo.elide.datastores.aggregation.metadata.models;
 
 import com.yahoo.elide.annotation.Include;
 import com.yahoo.elide.core.exceptions.InvalidPredicateException;
-import com.yahoo.elide.datastores.aggregation.metadata.metric.AggregatableField;
 import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.request.Argument;
 
@@ -40,22 +39,25 @@ public abstract class MetricFunction {
 
     private String description;
 
+    private String expression;
+
     @OneToMany
     private Set<FunctionArgument> arguments;
 
-    public MetricFunction(String name, String longName, String description, Set<FunctionArgument> arguments) {
+    public MetricFunction(String name, String longName, String description,
+                          Set<FunctionArgument> arguments, String expression) {
         this.name = name;
         this.longName = longName;
         this.description = description;
         this.arguments = arguments;
+        this.expression = expression;
     }
 
-    public MetricFunction(String name, String longName, String description) {
-        this(name, longName, description, Collections.emptySet());
+    public MetricFunction(String name, String longName, String description, String expression) {
+        this(name, longName, description, Collections.emptySet(), expression);
     }
 
     public MetricFunctionInvocation invoke(Map<String, Argument> arguments,
-                                           List<AggregatableField> fields,
                                            String alias) {
         final MetricFunction function = this;
         return new MetricFunctionInvocation() {
@@ -72,11 +74,6 @@ public abstract class MetricFunction {
             @Override
             public MetricFunction getFunction() {
                 return function;
-            }
-
-            @Override
-            public List<AggregatableField> getFields() {
-                return fields;
             }
 
             @Override
@@ -99,12 +96,10 @@ public abstract class MetricFunction {
      * Invoke this metric function with arguments, an aggregated field and projection alias.
      *
      * @param arguments arguments provided in the request
-     * @param fields fields to apply this function
      * @param alias result alias
      * @return an invoked metric function
      */
     public final MetricFunctionInvocation invoke(Set<Argument> arguments,
-                                                 List<AggregatableField> fields,
                                                  String alias) {
         Set<String> requiredArguments = getArgumentNames();
         Set<String> providedArguments = arguments.stream()
@@ -120,6 +115,6 @@ public abstract class MetricFunction {
         Map<String, Argument> resolvedArguments = arguments.stream()
                 .collect(Collectors.toMap(Argument::getName, Function.identity()));
 
-        return invoke(resolvedArguments, fields, alias);
+        return invoke(resolvedArguments, alias);
     }
 }

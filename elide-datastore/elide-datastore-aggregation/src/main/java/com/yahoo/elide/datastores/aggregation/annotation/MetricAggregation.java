@@ -5,6 +5,7 @@
  */
 package com.yahoo.elide.datastores.aggregation.annotation;
 
+import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 import com.yahoo.elide.datastores.aggregation.schema.metric.Aggregation;
 
 import java.lang.annotation.Documented;
@@ -37,5 +38,11 @@ public @interface MetricAggregation {
      *
      * @return a comprehensive list of provided aggregations
      */
-    Class<? extends Aggregation>[] aggregations();
+    Class<? extends MetricFunction> aggregation();
+
+    /**
+     * Optional expression native to the underlying query engine.
+     * @return
+     */
+    String expression() default "";
 }

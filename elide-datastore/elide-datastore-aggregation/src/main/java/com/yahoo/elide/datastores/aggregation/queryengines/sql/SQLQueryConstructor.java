@@ -15,6 +15,7 @@ import com.yahoo.elide.core.filter.expression.FilterExpression;
 import com.yahoo.elide.core.filter.expression.PredicateExtractionVisitor;
 import com.yahoo.elide.core.sort.Sorting;
 import com.yahoo.elide.datastores.aggregation.AggregationDictionary;
+import com.yahoo.elide.datastores.aggregation.metadata.metric.MetricFunctionInvocation;
 import com.yahoo.elide.datastores.aggregation.metadata.models.Table;
 import com.yahoo.elide.datastores.aggregation.query.ColumnProjection;
 import com.yahoo.elide.datastores.aggregation.query.Query;
@@ -187,7 +188,7 @@ public class SQLQueryConstructor {
             throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
         }
 
-        SQLMetricFunctionInvocation metric = template.getMetrics().stream()
+        MetricFunctionInvocation metric = template.getMetrics().stream()
                 // TODO: filter predicate should support alias
                 .filter(invocation -> invocation.getAlias().equals(fieldName))
                 .findFirst()
@@ -275,7 +276,7 @@ public class SQLQueryConstructor {
             throw new InvalidPredicateException("The having clause can only reference fact table aggregations.");
         }
 
-        SQLMetricFunctionInvocation metric = template.getMetrics().stream()
+        MetricFunctionInvocation metric = template.getMetrics().stream()
                 // TODO: filter predicate should support alias
                 .filter(invocation -> invocation.getAlias().equals(fieldName))
                 .findFirst()

@@ -14,7 +14,7 @@ import java.util.List;
  * An invoked metric function instance applied on an aggregated field with provided arguments to project the result
  * as the alias.
  */
-public interface MetricFunctionInvocation extends AggregatableField {
+public interface MetricFunctionInvocation {
     /**
      * Get all arguments provided for this metric function.
      *
@@ -38,13 +38,6 @@ public interface MetricFunctionInvocation extends AggregatableField {
     MetricFunction getFunction();
 
     /**
-     * Get all fields that is invoked in this metric.
-     *
-     * @return all aggregatable fields
-     */
-    List<AggregatableField> getFields();
-
-    /**
      * Get alias of this invocation.
      *
      * @return alias
@@ -56,7 +49,6 @@ public interface MetricFunctionInvocation extends AggregatableField {
      *
      * @return reference to this invocation
      */
-    @Override
     default String getName() {
         return getAlias();
     }

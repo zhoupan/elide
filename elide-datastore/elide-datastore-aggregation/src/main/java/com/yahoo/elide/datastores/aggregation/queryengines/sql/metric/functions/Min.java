@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.datastores.aggregation.metadata.metric.functions;
+package com.yahoo.elide.datastores.aggregation.queryengines.sql.metric.functions;
 
 import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
 
@@ -12,6 +12,6 @@ import com.yahoo.elide.datastores.aggregation.metadata.models.MetricFunction;
  */
 public class Min extends MetricFunction {
     public Min() {
-        super("Min", "Min", "Calculate min of a metric column");
+        super("Min", "Min", "Calculate min of a metric column", "MIN(%s)");
     }
 }
